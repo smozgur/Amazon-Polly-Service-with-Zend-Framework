@@ -1,0 +1,55 @@
+<div>
+	<input id="txt-phone" type="text" placeholder="Enter phone number">
+	<button id="btn-submit" class="btn btn-sm btn-default">Submit</button>
+</div>
+
+<script type="text/javascript">
+	$('#btn-submit').click(function() {
+		$.ajax({
+	        method: 'POST',
+	        url: '/application/ajax-checkin',
+	        dataType: 'json',
+	        data: {
+		        phone: $('#txt-phone').val()
+		    },
+		    success: function(response){
+			    if (response.success) {
+				    // Doing something for the matched phone number
+
+			    	// Make the second Ajax call to make it say something!
+			    	sayIt(response.customerId)
+			    } else {
+			    	// No match. 
+			    }
+			    alert(response.message);
+	        },
+	    });
+	});
+
+	function sayIt(customerId) {
+		window.AudioContext = window.AudioContext || window.webkitAudioContext;
+		var context = new AudioContext();
+		
+		$.ajax({
+	        method: 'POST',
+	        url: '/application/ajax-polly',
+	        dataType: 'binary',
+			xhrFields : {
+				responseType : 'arraybuffer'
+			},
+	        data: {
+		        id: customerId
+		    },
+		    success: function(response){
+		        context.decodeAudioData(response, function onSuccess(buffer) {
+		        	var source = context.createBufferSource();
+		        	source.buffer = buffer;
+		        	source.connect(context.destination);
+		        	source.start(0); 
+		        }, function onError (error) {
+		            alert('Error decoding file data.');
+		        });
+	        }
+	    });
+	}
+</script>
